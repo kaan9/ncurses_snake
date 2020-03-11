@@ -1,26 +1,14 @@
 #include <curses.h>
 
 #include "config.h"
+#include "globals.h"
 
-#define HRZ_SCALE 1.5
+extern WINDOW * swin
+extern WINDOW * wwin;
 
-/* snake window */
-#define HEIGHT 20
-#define WIDTH  30
-#define SWINX 0
-#define SWINY 1
+extern char grid[WIDTH][HEIGHT];
 
-/* score window */
-#define WHEIGHT SWINY
-#define WWIDTH  WIDTH
-#define WWINX 0
-#define WWINY 0
-
-WINDOW * swin, * wwin;
-
-unsigned int score = 0;
-
-char grid[WIDTH][HEIGHT];
+extern score
 
 void curse_init() {
 	initscr();
@@ -38,9 +26,17 @@ void curse_init() {
 	refresh();
 }
 
-void curse_update_score(unsigned int score) {
+int curse_timed_key() {
+	return timeout(DELAY);
+}
+
+void curse_update_score() {
 	wclear(wwin);
 	wprintw(wwin, "Score: %u", score);
+}
+
+void curse_update_grid() {
+	
 }
 
 void curse_repaint() {
