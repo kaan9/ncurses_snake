@@ -1,6 +1,7 @@
 #include <curses.h>
 
 #include "config.h"
+#include "curse.h"
 
 #define HRZ_SCALE 1.5
 
