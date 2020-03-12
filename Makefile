@@ -1,7 +1,7 @@
-CC = tcc
+CC = gcc
 CFLAGS = -Wall -c 
 LDFLAGS = -lncurses
-OBJS = snake.o
+OBJS = snake.o curse.o
 OUT = snake
 
 
@@ -12,6 +12,9 @@ $(OUT): $(OBJS)
 
 snake.o: 
 	$(CC) $(CFLAGS) snake.c -o $@ 
+
+curse.o:
+	$(CC) $(CFLAGS) curse.c -o $@
 
 clean:
 	rm -f *.o snake

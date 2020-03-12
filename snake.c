@@ -11,14 +11,16 @@ int main(int argc, char ** argv)
 {
 	curse_init();
 
-	curse_repaint();
-		
+	for (int i = 0; i < WIDTH; i++) {
+		for (int j = 0; j < HEIGHT; j++) {
+			grid[i][j] = 3;
+		}
+	}
+
 	int x;
-	while(x = wgetch(swin)) {
-		score += x;
-		curse_update_score(score);
-		wprintw(swin, "--got %d--", x);
-		curse_repaint();
+	while(x = curse_timed_key()) {
+		if (x != ERR) score += x;
+		curse_update(score, &grid);
 	}
 
 	curse_term();
