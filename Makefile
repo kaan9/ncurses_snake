@@ -5,7 +5,7 @@ OBJS = snake.o curse.o
 OUT = snake
 
 
-all:	clean $(OUT)
+all:	clobber $(OUT) clean
 
 $(OUT): $(OBJS)
 	$(CC) $(LDFLAGS) $(OBJS) -o $(OUT)
@@ -17,7 +17,13 @@ curse.o:
 	$(CC) $(CFLAGS) curse.c -o $@
 
 clean:
-	rm -f *.o snake
+	rm -f *.o
+
+clobber:
+	rm -f *.o $(OUT)
 
 run:	$(OUT)
 	./$(OUT)
+
+
+.PHONY: clean clobber run
