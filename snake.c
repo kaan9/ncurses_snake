@@ -7,7 +7,7 @@ unsigned int score = 0;
 
 char grid[WIDTH][HEIGHT];
 
-int main(int argc, char ** argv)
+int main(int argc, char **argv)
 {
 	curse_init();
 
@@ -17,9 +17,14 @@ int main(int argc, char ** argv)
 		}
 	}
 
+	grid[5][5] = 2;
+
+	grid[2][3] = 1;
+
 	int x;
-	while(x = curse_timed_key()) {
-		if (x != ERR) score += x;
+	while (x = curse_timed_key()) {
+		if (x != ERR)
+			score += x;
 		curse_update(score, &grid);
 	}
 

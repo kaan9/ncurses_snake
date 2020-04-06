@@ -18,3 +18,6 @@ curse.o:
 
 clean:
 	rm -f *.o snake
+
+run:	$(OUT)
+	./$(OUT)
