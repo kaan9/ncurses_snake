@@ -10,7 +10,7 @@
 static WINDOW * swin;
 static WINDOW * wwin;
 
-void curse_init()
+void curse_init(void)
 {
 	initscr();
 	clear();
@@ -47,24 +47,27 @@ static void ms_wait(unsigned int ms)
 	usleep((ms % 1000) * 1000);
 }
 
-static void stdinflush(void)
+static int stdinflush(void)
 {
 	for (int c = getch(); c != ERR; c = getch())
-		;
+		if (c == 'q')
+			return 1;
+	return 0;
 }
 
-int curse_timed_key()
+int curse_timed_key(void)
 {
 	ms_wait(DELAY);
 
 	/* extract first valid key in buffer if exists */
 	int c;
-	do
+	do {
 		c = getch();
-	while (c != ERR && c != KEY_UP && c != KEY_LEFT && c != KEY_RIGHT &&
-	       c != KEY_DOWN && c != 'q');
+	} while (c != ERR && c != KEY_UP && c != KEY_LEFT && c != KEY_RIGHT &&
+		 c != KEY_DOWN && c != 'q');
 
-	stdinflush();
+	if (stdinflush())
+		return 'q';
 	return c;
 }
 
@@ -89,7 +92,7 @@ static void curse_update_grid(char (*pgrid)[WIDTH][HEIGHT])
 	}
 }
 
-static void curse_repaint()
+static void curse_repaint(void)
 {
 	wrefresh(swin);
 	wrefresh(wwin);
@@ -103,7 +106,7 @@ void curse_update(unsigned int score, char (*pgrid)[WIDTH][HEIGHT])
 	curse_repaint();
 }
 
-void curse_term()
+void curse_term(void)
 {
 	delwin(swin);
 	delwin(wwin);

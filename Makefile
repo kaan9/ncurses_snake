@@ -22,7 +22,7 @@ clean:
 clobber:
 	rm -f *.o $(OUT)
 
-run:	clobber $(OUT)
+run:	all
 	./$(OUT)
 
 format: 

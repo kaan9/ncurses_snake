@@ -9,10 +9,10 @@
 #define FOOD_N 2
 #define BACKG_N 3
 
-void curse_init();
+void curse_init(void);
 
-int curse_timed_key();
+int curse_timed_key(void);
 
 void curse_update(unsigned int score, char (*pgrid)[WIDTH][HEIGHT]);
 
-void curse_term();
+void curse_term(void);
