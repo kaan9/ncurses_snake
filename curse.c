@@ -1,18 +1,11 @@
 #include <curses.h>
 #include <stdlib.h>
+#include <time.h>
+#include <unistd.h>
 
 #include "config.h"
 
 #include "curse.h"
-
-/*
- * numeric macros for init_pair
- * also used for grid representation as the last 2
- * bits of each [x][y] value
- */
-#define SNAKE_N 1
-#define FOOD_N  2
-#define BACKG_N 3
 
 static WINDOW * swin;
 static WINDOW * wwin;
@@ -24,11 +17,11 @@ void curse_init()
 	noecho();
 	cbreak();
 	nonl();
-	
+
 	nodelay(stdscr, TRUE);
 	intrflush(stdscr, FALSE);
 	keypad(stdscr, TRUE);
-	
+
 	curs_set(0);
 
 	start_color();
@@ -41,18 +34,38 @@ void curse_init()
 	init_pair(FOOD_N, FOOD_C, FOOD_C);
 	init_pair(BACKG_N, BACKG_C, BACKG_C);
 
+	swin = newwin(HEIGHT + 2, WIDTH + 2, SWINY, SWINX);
+	wwin = newwin(WHEIGHT, WWIDTH, WWINX, WWINY);
 
-	swin = newwin(HEIGHT, HRZ_SCALE * WIDTH, SWINY, SWINX);
-	wwin = newwin(WHEIGHT, HRZ_SCALE * WWIDTH, WWINX, WWINY);
-
-	box(swin,0,0);
+	box(swin, 0, 0);
 	refresh();
+}
+
+static void ms_wait(unsigned int ms)
+{
+	sleep(ms / 1000);
+	usleep((ms % 1000) * 1000);
+}
+
+static void stdinflush(void)
+{
+	for (int c = getch(); c != ERR; c = getch())
+		;
 }
 
 int curse_timed_key()
 {
-	timeout(DELAY);
-	return getch();
+	ms_wait(DELAY);
+
+	/* extract first valid key in buffer if exists */
+	int c;
+	do
+		c = getch();
+	while (c != ERR && c != KEY_UP && c != KEY_LEFT && c != KEY_RIGHT &&
+	       c != KEY_DOWN && c != 'q');
+
+	stdinflush();
+	return c;
 }
 
 static void curse_update_score(unsigned int score)
@@ -61,28 +74,29 @@ static void curse_update_score(unsigned int score)
 	wprintw(wwin, "Score: %u", score);
 }
 
-static void curse_update_grid(char (* pgrid)[WIDTH][HEIGHT])
+static void curse_update_grid(char (*pgrid)[WIDTH][HEIGHT])
 {
 	for (int x = 0; x < WIDTH; x++) {
 		for (int y = 0; y < HEIGHT; y++) {
-			/* attribute is stored as last
-			 * 2 bits of each entry
+			/* 
+			 * attribute is stored as last
+			 * 2 bits of each entry, corresponding to SNAKE_N, FOOD_N, BACKG_N
+			 * adjust the (x,y) for the borders in mvwaddch
 			 */
-			wattron(swin, (*pgrid)[x][y] & 3);
-			mvaddch(y, x, ACS_BLOCK);
-			wattroff(swin, (*pgrid)[x][y] & 3);
+			wattrset(swin, COLOR_PAIR((*pgrid)[x][y] & 3));
+			mvwaddch(swin, y + 1, x + 1, ACS_BLOCK);
 		}
 	}
 }
 
-static void curse_repaint() 
+static void curse_repaint()
 {
 	wrefresh(swin);
 	wrefresh(wwin);
 	refresh();
 }
 
-void curse_update(unsigned int score, char (* pgrid)[WIDTH][HEIGHT])
+void curse_update(unsigned int score, char (*pgrid)[WIDTH][HEIGHT])
 {
 	curse_update_score(score);
 	curse_update_grid(pgrid);

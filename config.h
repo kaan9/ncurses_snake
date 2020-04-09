@@ -1,7 +1,7 @@
 #include <curses.h>
 
 /* horizontal to vertical proportion */
-#define HRZ_SCALE 1.5
+/* #define HRZ_SCALE 1.5 */
 
 /** dimensions **/
 
@@ -18,14 +18,15 @@
 #define WWINY 0
 
 /* delay between keyreads in ms */
-#define DELAY 500
+#define DELAY 400
 
 /** colors **/
 
 /* if true and terminal doesn't support color, program will terminate */
 #define REQ_COLOR FALSE
 
+/* choose colors for the background, snake, and food */
 #define BACKG_C COLOR_BLACK
-#define SNAKE_C COLOR_GREEN
+#define SNAKE_C COLOR_CYAN
 #define FOOD_C  COLOR_RED
 

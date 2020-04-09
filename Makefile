@@ -22,8 +22,10 @@ clean:
 clobber:
 	rm -f *.o $(OUT)
 
-run:	$(OUT)
+run:	clobber $(OUT)
 	./$(OUT)
 
+format: 
+	clang-format -i *.c
 
 .PHONY: clean clobber run
