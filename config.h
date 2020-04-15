@@ -7,13 +7,13 @@
 
 /* snake window dimensions and position */
 #define HEIGHT 20
-#define WIDTH  30
+#define WIDTH 30
 #define SWINX 0
 #define SWINY 1
 
 /* score window dimensions and position */
 #define WHEIGHT SWINY
-#define WWIDTH  WIDTH
+#define WWIDTH WIDTH
 #define WWINX 0
 #define WWINY 0
 
@@ -28,5 +28,4 @@
 /* choose colors for the background, snake, and food */
 #define BACKG_C COLOR_BLACK
 #define SNAKE_C COLOR_CYAN
-#define FOOD_C  COLOR_RED
-
+#define FOOD_C COLOR_RED

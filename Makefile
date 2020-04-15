@@ -4,7 +4,6 @@ LDFLAGS = -lncurses
 OBJS = snake.o curse.o
 OUT = snake
 
-
 all:	clobber $(OUT) clean
 
 $(OUT): $(OBJS)
@@ -26,6 +25,6 @@ run:	all
 	./$(OUT)
 
 format: 
-	clang-format -i *.c
+	clang-format -i *.c *.h
 
 .PHONY: clean clobber run

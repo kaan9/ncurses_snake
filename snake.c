@@ -22,7 +22,8 @@ unsigned int score = 0;
  */
 char grid[WIDTH][HEIGHT];
 
-struct snake_t snake = { { WIDTH / 2, HEIGHT / 2 }, { WIDTH / 2 - 1, HEIGHT / 2 } };
+struct snake_t snake = { { WIDTH / 2, HEIGHT / 2 },
+			 { WIDTH / 2 - 1, HEIGHT / 2 } };
 
 void spawn_food(void)
 {
@@ -32,6 +33,8 @@ void spawn_food(void)
 	while (grid[r / HEIGHT][r % HEIGHT] != BACKG_N);
 
 	grid[r / HEIGHT][r % HEIGHT] = FOOD_N;
+	grid[0][0] = FOOD_N;
+	grid[WIDTH - 1][HEIGHT - 1] = FOOD_N;
 }
 
 void init(void)
@@ -70,33 +73,30 @@ void movetile(snake_dir d, int * pos)
 
 snake_dir get_dir(int key)
 {
-		snake_dir d = grid[snake.head[0]][snake.head[1]] >> 2;
-		switch (key) {
-		case KEY_LEFT:
-			return (d != RIGHT) ? LEFT : d;
-		case KEY_RIGHT:
-			return (d != LEFT) ? RIGHT : d;
-		case KEY_DOWN:
-			return (d != UP) ? DOWN : d;
-		case KEY_UP:
-			return (d != DOWN) ? UP : d;
-		}
-		return d;
+	snake_dir d = (grid[snake.head[0]][snake.head[1]] >> 2) & 3;
+	switch (key) {
+	case KEY_LEFT:
+		return (d != RIGHT) ? LEFT : d;
+	case KEY_RIGHT:
+		return (d != LEFT) ? RIGHT : d;
+	case KEY_DOWN:
+		return (d != UP) ? DOWN : d;
+	case KEY_UP:
+		return (d != DOWN) ? UP : d;
+	}
+	return d;
 }
-
 
 void game_loop(void)
 {
-	FILE * fuk =  fopen("debug", "w+");
+	FILE * fuk = fopen("debug", "w+");
 	for (int key = curse_timed_key(); key != 'q'; key = curse_timed_key()) {
 		snake_dir d = get_dir(key);
 
 		int head[2] = { snake.head[0], snake.head[1] };
-		int tail[2] = {snake.tail[0], snake.tail[1]};
+		int tail[2] = { snake.tail[0], snake.tail[1] };
 
-		fprintf(fuk, "%d %d -- %d %d\n", head[0], head[1], tail[0], tail[1]);
 		movetile(d, head);
-		fprintf(fuk, "%d %d -- %d %d\n", head[0], head[1], tail[0], tail[1]);
 
 		if (head[0] < 0 || head[0] >= WIDTH || head[1] < 0 ||
 		    head[1] >= HEIGHT)
@@ -104,26 +104,35 @@ void game_loop(void)
 
 		movetile(grid[tail[0]][tail[1]] >> 2, tail);
 
-
 		switch (grid[head[0]][head[1]] & 0x3) {
 		case SNAKE_N:
-			printf("snake\n");
+			fprintf(fuk, "snake\n");
 			return;
 		case BACKG_N:
-			printf("backg\n");
+			fprintf(fuk, "backg\n");
 			grid[snake.tail[0]][snake.tail[1]] = BACKG_N;
-			
+
 			snake.tail[0] = tail[0];
 			snake.tail[1] = tail[1];
+
+			grid[head[0]][head[1]] = (d << 2) | SNAKE_N;
+			snake.head[0] = head[0];
+			snake.head[1] = head[1];
+			break;
 		case FOOD_N:
-			printf("food\n");
+			fprintf(fuk, "food\n");
 			grid[head[0]][head[1]] = (d << 2) | SNAKE_N;
 			snake.head[0] = head[0];
 			snake.head[1] = head[1];
 			score += 100;
 		}
-	//	score += 2000;
 		curse_update(score, &grid);
+	}
+	for (int i = 0; i < WIDTH; i++) {
+		for (int j = 0; j < HEIGHT; j++) {
+			fprintf(fuk, "(%d, %d) ", grid[i][j] >> 2, grid[i][j] & 3);
+		}
+		fprintf(fuk, "\n");
 	}
 	fclose(fuk);
 }
