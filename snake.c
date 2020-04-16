@@ -6,12 +6,16 @@
 #include "config.h"
 #include "curse.h"
 
-typedef enum { LEFT = 0, RIGHT = 1, UP = 2, DOWN = 3 } snake_dir;
+typedef enum { LEFT = 0, RIGHT = 1, UP = 2, DOWN = 3 } SNAKE_DIR;
+
+struct point {
+	unsigned char x;
+	unsigned char y;
+};
 
 struct snake_t {
-	unsigned char head[2];
-	unsigned char tail[2];
-	snake_dir d;
+	struct point head;
+	struct point tail;
 };
 
 unsigned int score = 0;
@@ -24,8 +28,7 @@ unsigned int score = 0;
 unsigned char grid[WIDTH][HEIGHT];
 
 struct snake_t snake = { { WIDTH / 2, HEIGHT / 2 },
-			 { WIDTH / 2 - 1, HEIGHT / 2 },
-			 RIGHT };
+			 { WIDTH / 2 - 2, HEIGHT / 2 } };
 
 void spawn_food(void)
 {
@@ -45,56 +48,58 @@ void init(void)
 		for (int j = 0; j < HEIGHT; j++)
 			grid[i][j] = BACKG_N;
 
-	grid[snake.head[0]][snake.head[1]] = (RIGHT << 2) | SNAKE_N;
-	grid[snake.tail[0]][snake.tail[1]] = (RIGHT << 2) | SNAKE_N;
+	grid[snake.head.x][snake.head.y] = (RIGHT << 2) | SNAKE_N;
+	grid[snake.head.x - 1][snake.tail.y] = (RIGHT << 2) | SNAKE_N;
+	grid[snake.head.x - 2][snake.tail.y] = (RIGHT << 2) | BACKG_N;
 
 	srandom(time(NULL));
 
 	spawn_food();
+
+	curse_update(score, &grid);
 }
 
-int movesquare(snake_dir d, unsigned char * x, unsigned char * y,
-	       unsigned char tailing)
+SNAKE_DIR point_dir(struct point p)
 {
-	unsigned char xprev = *x, yprev = *y;
-	int status = 0;
+	return (grid[p.x][p.y] >> 2) & 3;
+}
 
+int point_type(struct point p)
+{
+	return grid[p.x][p.y] & 3;
+}
+
+void color_point(struct point p, SNAKE_DIR d, int type)
+{
+	grid[p.x][p.y] = (d << 2) | type;
+}
+
+struct point next_point(SNAKE_DIR d, struct point p)
+{
 	switch (d) {
 	case LEFT:
-		(*x)--;
+		p.x--;
 		break;
 	case RIGHT:
-		(*x)++;
+		p.x++;
 		break;
 	case UP:
-		(*y)--;
+		p.y--;
 		break;
 	case DOWN:
-	default:
-		(*y)++;
+		p.y++;
 	}
-
-	if ((*x) < 0 || (*x) >= WIDTH || (*y) < 0 || (*y) >= HEIGHT)
-		return -1;
-	if ((grid[*x][*y] & 3) == SNAKE_N)
-		return -2;
-	if ((grid[*x][*y] & 3) == FOOD_N)
-		status = 1;
-
-	grid[*x][*y] = grid[xprev][yprev];
-
-	if (!tailing)
-		grid[xprev][yprev] = BACKG_N;
-	else
-		grid[xprev][yprev] &= ((d << 2) | 3);
-
-	return status;
+	return p;
 }
 
-snake_dir get_dir(int key)
+int point_invalid(struct point p)
 {
-	//	snake_dir d = (grid[snake.head[0]][snake.head[1]] >> 2) & 3;
-	snake_dir d = snake.d;
+	return (p.x < 0 || p.x >= WIDTH || p.y < 0 || p.y >= HEIGHT);
+}
+
+SNAKE_DIR snake_next_dir(int key)
+{
+	SNAKE_DIR d = point_dir(snake.head);
 	switch (key) {
 	case KEY_LEFT:
 		return (d != RIGHT) ? LEFT : d;
@@ -108,24 +113,44 @@ snake_dir get_dir(int key)
 	return d;
 }
 
+
+void move_tail()
+{
+	color_point(snake.tail, point_dir(snake.tail), BACKG_N);
+	snake.tail = next_point(point_dir(snake.tail), snake.tail);
+}
+
+int move_head(SNAKE_DIR d)
+{
+	int status = 0;
+	color_point(snake.head, d, SNAKE_N);
+	snake.head = next_point(d, snake.head);
+	if (point_invalid(snake.head)) return -1;
+	switch(point_type(snake.head)) {
+	case SNAKE_N:
+		return -2;
+	case FOOD_N:
+		status = 1;
+		spawn_food();
+	default:
+		color_point(snake.head, d, SNAKE_N);
+	}
+	return status;
+}
+
 void game_loop(void)
 {
 	for (int key = curse_timed_key(); key != 'q'; key = curse_timed_key()) {
-		snake_dir d = get_dir(key);
-		movesquare((grid[snake.tail[0]][snake.tail[1]] >> 2) & 3,
-			   &snake.tail[0], &snake.tail[1], 0);
-		switch (movesquare(d, &snake.head[0], &snake.head[1], 1)) {
+		switch(move_head(snake_next_dir(key))) {
 		case -2:
 		case -1:
 			return;
+		case 0:
+			move_tail();
+			break;
 		case 1:
-			score += 100;
-			spawn_food();
+			score++;
 		}
-		snake.d = d;
-
-
-
 		curse_update(score, &grid);
 	}
 }
@@ -134,7 +159,13 @@ int main(int argc, char ** argv)
 {
 	init();
 
+	sleep(3);
+
 	game_loop();
+
+	curse_gameover(score);
+
+	while (curse_timed_key() == ERR);
 
 	curse_term();
 

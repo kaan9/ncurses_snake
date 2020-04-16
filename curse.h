@@ -15,4 +15,6 @@ int curse_timed_key(void);
 
 void curse_update(unsigned int score, unsigned char (*pgrid)[WIDTH][HEIGHT]);
 
+void curse_gameover(unsigned int final_score);
+
 void curse_term(void);

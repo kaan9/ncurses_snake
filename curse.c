@@ -106,6 +106,13 @@ void curse_update(unsigned int score, unsigned char (*pgrid)[WIDTH][HEIGHT])
 	curse_repaint();
 }
 
+void curse_gameover(unsigned int final_score)
+{
+	wclear(wwin);
+	wprintw(wwin, "GAME OVER --- Final Score: %u", final_score);
+	curse_repaint();
+}
+
 void curse_term(void)
 {
 	delwin(swin);
