@@ -9,8 +9,9 @@
 typedef enum { LEFT = 0, RIGHT = 1, UP = 2, DOWN = 3 } snake_dir;
 
 struct snake_t {
-	int head[2];
-	int tail[2];
+	unsigned char head[2];
+	unsigned char tail[2];
+	snake_dir d;
 };
 
 unsigned int score = 0;
@@ -20,10 +21,11 @@ unsigned int score = 0;
  * previous two bits for next direction
  * (only valid for SNAKE_N positions)
  */
-char grid[WIDTH][HEIGHT];
+unsigned char grid[WIDTH][HEIGHT];
 
 struct snake_t snake = { { WIDTH / 2, HEIGHT / 2 },
-			 { WIDTH / 2 - 1, HEIGHT / 2 } };
+			 { WIDTH / 2 - 1, HEIGHT / 2 },
+			 RIGHT };
 
 void spawn_food(void)
 {
@@ -33,8 +35,6 @@ void spawn_food(void)
 	while (grid[r / HEIGHT][r % HEIGHT] != BACKG_N);
 
 	grid[r / HEIGHT][r % HEIGHT] = FOOD_N;
-	grid[0][0] = FOOD_N;
-	grid[WIDTH - 1][HEIGHT - 1] = FOOD_N;
 }
 
 void init(void)
@@ -53,27 +53,48 @@ void init(void)
 	spawn_food();
 }
 
-void movetile(snake_dir d, int * pos)
+int movesquare(snake_dir d, unsigned char * x, unsigned char * y,
+	       unsigned char tailing)
 {
+	unsigned char xprev = *x, yprev = *y;
+	int status = 0;
+
 	switch (d) {
 	case LEFT:
-		pos[0]--;
+		(*x)--;
 		break;
 	case RIGHT:
-		pos[0]++;
-		break;
-	case DOWN:
-		pos[1]++;
+		(*x)++;
 		break;
 	case UP:
-		pos[1]--;
+		(*y)--;
 		break;
+	case DOWN:
+	default:
+		(*y)++;
 	}
+
+	if ((*x) < 0 || (*x) >= WIDTH || (*y) < 0 || (*y) >= HEIGHT)
+		return -1;
+	if ((grid[*x][*y] & 3) == SNAKE_N)
+		return -2;
+	if ((grid[*x][*y] & 3) == FOOD_N)
+		status = 1;
+
+	grid[*x][*y] = grid[xprev][yprev];
+
+	if (!tailing)
+		grid[xprev][yprev] = BACKG_N;
+	else
+		grid[xprev][yprev] &= ((d << 2) | 3);
+
+	return status;
 }
 
 snake_dir get_dir(int key)
 {
-	snake_dir d = (grid[snake.head[0]][snake.head[1]] >> 2) & 3;
+	//	snake_dir d = (grid[snake.head[0]][snake.head[1]] >> 2) & 3;
+	snake_dir d = snake.d;
 	switch (key) {
 	case KEY_LEFT:
 		return (d != RIGHT) ? LEFT : d;
@@ -89,52 +110,24 @@ snake_dir get_dir(int key)
 
 void game_loop(void)
 {
-	FILE * fuk = fopen("debug", "w+");
 	for (int key = curse_timed_key(); key != 'q'; key = curse_timed_key()) {
 		snake_dir d = get_dir(key);
-
-		int head[2] = { snake.head[0], snake.head[1] };
-		int tail[2] = { snake.tail[0], snake.tail[1] };
-
-		movetile(d, head);
-
-		if (head[0] < 0 || head[0] >= WIDTH || head[1] < 0 ||
-		    head[1] >= HEIGHT)
-			break;
-
-		movetile(grid[tail[0]][tail[1]] >> 2, tail);
-
-		switch (grid[head[0]][head[1]] & 0x3) {
-		case SNAKE_N:
-			fprintf(fuk, "snake\n");
+		movesquare((grid[snake.tail[0]][snake.tail[1]] >> 2) & 3,
+			   &snake.tail[0], &snake.tail[1], 0);
+		switch (movesquare(d, &snake.head[0], &snake.head[1], 1)) {
+		case -2:
+		case -1:
 			return;
-		case BACKG_N:
-			fprintf(fuk, "backg\n");
-			grid[snake.tail[0]][snake.tail[1]] = BACKG_N;
-
-			snake.tail[0] = tail[0];
-			snake.tail[1] = tail[1];
-
-			grid[head[0]][head[1]] = (d << 2) | SNAKE_N;
-			snake.head[0] = head[0];
-			snake.head[1] = head[1];
-			break;
-		case FOOD_N:
-			fprintf(fuk, "food\n");
-			grid[head[0]][head[1]] = (d << 2) | SNAKE_N;
-			snake.head[0] = head[0];
-			snake.head[1] = head[1];
+		case 1:
 			score += 100;
+			spawn_food();
 		}
+		snake.d = d;
+
+
+
 		curse_update(score, &grid);
 	}
-	for (int i = 0; i < WIDTH; i++) {
-		for (int j = 0; j < HEIGHT; j++) {
-			fprintf(fuk, "(%d, %d) ", grid[i][j] >> 2, grid[i][j] & 3);
-		}
-		fprintf(fuk, "\n");
-	}
-	fclose(fuk);
 }
 
 int main(int argc, char ** argv)

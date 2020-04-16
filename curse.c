@@ -77,7 +77,7 @@ static void curse_update_score(unsigned int score)
 	wprintw(wwin, "Score: %u", score);
 }
 
-static void curse_update_grid(char (*pgrid)[WIDTH][HEIGHT])
+static void curse_update_grid(unsigned char (*pgrid)[WIDTH][HEIGHT])
 {
 	for (int x = 0; x < WIDTH; x++) {
 		for (int y = 0; y < HEIGHT; y++) {
@@ -99,7 +99,7 @@ static void curse_repaint(void)
 	refresh();
 }
 
-void curse_update(unsigned int score, char (*pgrid)[WIDTH][HEIGHT])
+void curse_update(unsigned int score, unsigned char (*pgrid)[WIDTH][HEIGHT])
 {
 	curse_update_score(score);
 	curse_update_grid(pgrid);

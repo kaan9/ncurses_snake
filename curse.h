@@ -13,6 +13,6 @@ void curse_init(void);
 
 int curse_timed_key(void);
 
-void curse_update(unsigned int score, char (*pgrid)[WIDTH][HEIGHT]);
+void curse_update(unsigned int score, unsigned char (*pgrid)[WIDTH][HEIGHT]);
 
 void curse_term(void);
