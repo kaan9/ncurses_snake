@@ -159,8 +159,6 @@ int main(int argc, char ** argv)
 {
 	init();
 
-	sleep(3);
-
 	game_loop();
 
 	curse_gameover(score);

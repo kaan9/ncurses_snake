@@ -18,7 +18,7 @@
 #define WWINY 0
 
 /* delay between keyreads in ms */
-#define DELAY 400
+#define DELAY 100
 
 /** colors **/
 
