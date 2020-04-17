@@ -113,7 +113,6 @@ SNAKE_DIR snake_next_dir(int key)
 	return d;
 }
 
-
 void move_tail()
 {
 	color_point(snake.tail, point_dir(snake.tail), BACKG_N);
@@ -125,8 +124,9 @@ int move_head(SNAKE_DIR d)
 	int status = 0;
 	color_point(snake.head, d, SNAKE_N);
 	snake.head = next_point(d, snake.head);
-	if (point_invalid(snake.head)) return -1;
-	switch(point_type(snake.head)) {
+	if (point_invalid(snake.head))
+		return -1;
+	switch (point_type(snake.head)) {
 	case SNAKE_N:
 		return -2;
 	case FOOD_N:
@@ -141,7 +141,7 @@ int move_head(SNAKE_DIR d)
 void game_loop(void)
 {
 	for (int key = curse_timed_key(); key != 'q'; key = curse_timed_key()) {
-		switch(move_head(snake_next_dir(key))) {
+		switch (move_head(snake_next_dir(key))) {
 		case -2:
 		case -1:
 			return;
@@ -163,7 +163,8 @@ int main(int argc, char ** argv)
 
 	curse_gameover(score);
 
-	while (curse_timed_key() == ERR);
+	while (curse_timed_key() == ERR)
+		;
 
 	curse_term();
 

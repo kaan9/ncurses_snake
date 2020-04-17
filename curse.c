@@ -54,7 +54,7 @@ int curse_timed_key(void)
 	/* extract first valid key in buffer if exists */
 	int c, key = ERR;
 	while ((c = getch()), c != ERR) {
-		switch(c) {
+		switch (c) {
 		case 'q':
 			return 'q';
 		case 'w':
