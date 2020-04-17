@@ -47,28 +47,37 @@ static void ms_wait(unsigned int ms)
 	usleep((ms % 1000) * 1000);
 }
 
-static int stdinflush(void)
-{
-	for (int c = getch(); c != ERR; c = getch())
-		if (c == 'q')
-			return 1;
-	return 0;
-}
-
 int curse_timed_key(void)
 {
 	ms_wait(DELAY);
 
 	/* extract first valid key in buffer if exists */
-	int c;
-	do {
-		c = getch();
-	} while (c != ERR && c != KEY_UP && c != KEY_LEFT && c != KEY_RIGHT &&
-		 c != KEY_DOWN && c != 'q');
-
-	if (stdinflush())
-		return 'q';
-	return c;
+	int c, key = ERR;
+	while ((c = getch()), c != ERR) {
+		switch(c) {
+		case 'q':
+			return 'q';
+		case 'w':
+			key = KEY_UP;
+			continue;
+		case 'a':
+			key = KEY_LEFT;
+			continue;
+		case 's':
+			key = KEY_DOWN;
+			continue;
+		case 'd':
+			key = KEY_RIGHT;
+			continue;
+		case KEY_UP:
+		case KEY_DOWN:
+		case KEY_LEFT:
+		case KEY_RIGHT:
+			key = c;
+			continue;
+		}
+	}
+	return key;
 }
 
 static void curse_update_score(unsigned int score)
