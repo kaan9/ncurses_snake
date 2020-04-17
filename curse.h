@@ -1,3 +1,6 @@
+#ifndef CURSE_H
+#define CURSE_H
+
 #include "config.h"
 
 /* 
@@ -18,3 +21,5 @@ void curse_update(unsigned int score, unsigned char (*pgrid)[WIDTH][HEIGHT]);
 void curse_gameover(unsigned int final_score);
 
 void curse_term(void);
+
+#endif
